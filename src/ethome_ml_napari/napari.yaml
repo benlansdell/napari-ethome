@@ -1,0 +1,48 @@
+name: napari-ethome
+display_name: Ethome napari
+contributions:
+  commands:
+    - id: napari-ethome.get_reader
+      python_name: ethome_ml_napari._reader:napari_get_reader
+      title: Open data with Ethome napari
+    - id: napari-ethome.write_multiple
+      python_name: ethome_ml_napari._writer:write_multiple
+      title: Save multi-layer data with Ethome napari
+    - id: napari-ethome.write_single_image
+      python_name: ethome_ml_napari._writer:write_single_image
+      title: Save image data with Ethome napari
+    - id: napari-ethome.make_sample_data
+      python_name: ethome_ml_napari._sample_data:make_sample_data
+      title: Load sample data from Ethome napari
+    - id: napari-ethome.make_qwidget
+      python_name: ethome_ml_napari._widget:ExampleQWidget
+      title: Make example QWidget
+    - id: napari-ethome.make_magic_widget
+      python_name: ethome_ml_napari._widget:example_magic_widget
+      title: Make example magic widget
+    - id: napari-ethome.make_func_widget
+      python_name: ethome_ml_napari._widget:example_function_widget
+      title: Make example function widget
+  readers:
+    - command: napari-ethome.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.npy']
+  writers:
+    - command: napari-ethome.write_multiple
+      layer_types: ['image*','labels*']
+      filename_extensions: []
+    - command: napari-ethome.write_single_image
+      layer_types: ['image']
+      filename_extensions: ['.npy']
+  sample_data:
+    - command: napari-ethome.make_sample_data
+      display_name: Ethome napari
+      key: unique_id.1
+  widgets:
+    - command: napari-ethome.make_qwidget
+      display_name: Example QWidget
+    - command: napari-ethome.make_magic_widget
+      display_name: Example Magic Widget
+    - command: napari-ethome.make_func_widget
+      autogenerate: true
+      display_name: Example Function Widget
