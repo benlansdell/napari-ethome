@@ -9,13 +9,18 @@ Replace code below according to your needs.
 from typing import TYPE_CHECKING
 
 from magicgui import magic_factory
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QComboBox, QLabel
 
-if TYPE_CHECKING:
-    import napari
+from magicgui import magicgui
+import datetime
+from napari_plot._qt.qt_viewer import QtViewer
+import napari_plot
 
+import napari
+from typing import List
+from napari.layers import Image, Tracks
 
-class ExampleQWidget(QWidget):
+class PipelineQWidget(QWidget):
     # your QWidget.__init__ can optionally request the napari viewer instance
     # in one of two ways:
     # 1. use a parameter called `napari_viewer`, as done here
@@ -23,24 +28,41 @@ class ExampleQWidget(QWidget):
     def __init__(self, napari_viewer):
         super().__init__()
         self.viewer = napari_viewer
-
-        btn = QPushButton("Click me!")
-        btn.clicked.connect(self._on_click)
+        self.image_layers = []
+        self.tracking_layers = []
+        cbox = QComboBox()
+        for layer in self.viewer.layers:
+            if isinstance(layer, Image):
+                self.image_layers.append(layer)
+                cbox.addItem(layer.name)
+            if isinstance(layer, Tracks):
+                self.tracking_layers.append(layer)
+        cbox.activated.connect(self._on_click)
 
         self.setLayout(QHBoxLayout())
-        self.layout().addWidget(btn)
+        label = QLabel("Select a video")
+        self.layout().addWidget(label)
+        self.layout().addWidget(cbox)
 
-    def _on_click(self):
-        print("napari has", len(self.viewer.layers), "layers")
+        self.viewer1d = napari_plot.ViewerModel1D()
+        widget = QtViewer(self.viewer1d)
+        self.viewer.window.add_dock_widget(widget, area="bottom", name="Line Widget")
 
+    def _on_click(self, idx):
+        self.viewer.layers.selection.active = self.image_layers[idx]
+        for l in self.image_layers:
+            l.visible = False
+        self.image_layers[idx].visible = True
 
-@magic_factory
-def example_magic_widget(img_layer: "napari.layers.Image"):
-    print(f"you have selected {img_layer}")
+        for l in self.tracking_layers:
+            l.visible = False
+        self.tracking_layers[idx].visible = True
 
+def my_fancy_choices_function(gui) -> List[str]:
+    return ["otsu", "opening"]
 
-# Uses the `autogenerate: true` flag in the plugin manifest
-# to indicate it should be wrapped as a magicgui to autogenerate
-# a widget.
-def example_function_widget(img_layer: "napari.layers.Image"):
-    print(f"you have selected {img_layer}")
+@magicgui(layer_name={"choices": my_fancy_choices_function})
+def example_magic_widget(layer_name: str, viewer: napari.Viewer):
+    # the current layer_name choice to get the viewer.
+    selected_layer = viewer.layers[layer_name]
+    # go nuts with your layer.

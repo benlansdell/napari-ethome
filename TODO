@@ -1,0 +1,37 @@
+# TODO
+
+Warming up:
+
+* On reading the file:
+  Read labels
+  Add widget that lets you select video
+* Features widget: 
+  display plot of features
+  feature creation buttons
+* ML model widget:
+  Button to fit models. Which models? XGB Boost... RF? Start with a default model.
+  Selector to plot prediction trace
+
+Then: labeling features
+
+* Behavior labels -- text layer?
+  Points with text labels?
+  Predictions and labeled behavior
+* Custom key bindings for annotations
+
+Finally:
+
+* Embedding plots
+* Active learning
+
+DONE
+
+x On reading the file:
+  Setup video viewers
+  Read tracks 
+x Visualize DLC tracking -- add a points layer over the videos
+  https://napari.org/stable/gallery/points-over-time.html
+x Import of files -- metadata as json file
+x Add demo data
+x Create demo json file
+x Decide on import format

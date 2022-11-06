@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import numpy
 
-
 def make_sample_data():
     """Generates an image"""
     # Return list of tuples

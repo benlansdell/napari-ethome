@@ -5,8 +5,12 @@ It implements the Reader specification, but your plugin may choose to
 implement multiple readers or even other plugin contributions. see:
 https://napari.org/stable/plugins/guides.html?#readers
 """
-import numpy as np
-
+import json
+from ethome import create_dataset
+from napari_video.napari_video import VideoReaderNP
+import pandas as pd
+from itertools import product
+import os
 
 def napari_get_reader(path):
     """A basic implementation of a Reader contribution.
@@ -26,15 +30,15 @@ def napari_get_reader(path):
         # reader plugins may be handed single path, or a list of paths.
         # if it is a list, it is assumed to be an image stack...
         # so we are only going to look at the first file.
-        path = path[0]
+        print("Only provide one project file.")
+        return None
 
     # if we know we cannot read the file, we immediately return None.
-    if not path.endswith(".npy"):
+    if not path.endswith(".json"):
         return None
 
     # otherwise we return the *function* that can read ``path``.
     return reader_function
-
 
 def reader_function(path):
     """Take a path or list of paths and return a list of LayerData tuples.
@@ -60,13 +64,42 @@ def reader_function(path):
     """
     # handle both a string and a list of strings
     paths = [path] if isinstance(path, str) else path
-    # load all files into array
-    arrays = [np.load(_path) for _path in paths]
-    # stack arrays into single array
-    data = np.squeeze(np.stack(arrays))
 
-    # optional kwargs for the corresponding viewer.add_* method
-    add_kwargs = {}
+    #Load metadata from json file
+    with open(path) as f:
+        metadata = json.load(f)
 
-    layer_type = "image"  # optional, default is "image"
-    return [(data, add_kwargs, layer_type)]
+    df = create_dataset(metadata)
+
+    add_kwargs = {'visible': False}
+    layer_type = "image"
+    def make_kwargs(p):
+        return {**add_kwargs, 'name': os.path.basename(p)}
+    vid_paths = [df.metadata.details[vid]['video'] for vid in df.metadata.videos]
+    vid_layers = [(VideoReaderNP(p), make_kwargs(p), layer_type) for p in vid_paths]
+
+    #Load in tracking data 
+    for vid in df.metadata.videos:
+        add_kwargs = {'visible': False, 'name': os.path.basename(vid)}
+        layer_type = "tracks"
+        tracks = df.loc[df['filename'] == vid, df.pose.raw_track_columns].reset_index(drop=True)
+        this_vids_data = pd.DataFrame()
+        for track_idx, (animal, bp) in enumerate(product(df.pose.animals, df.pose.body_parts)):
+            data = tracks.loc[:, [f'{animal}_x_{bp}', f'{animal}_y_{bp}']]
+            data.columns = ['x', 'y']
+            data['track_idx'] = track_idx
+            data['frame'] = data.index
+            data = data.loc[:,['track_idx', 'frame', 'y', 'x']]
+            this_vids_data = pd.concat([this_vids_data, data])
+        vid_layers.append((this_vids_data.to_numpy(), add_kwargs, layer_type))
+
+    #If there are labels, add that data too
+    label_data = []
+    if 'labels' in df.metadata.details:
+        add_kwargs = {'visible': False, 'name': os.path.basename(df.metadata.details['labels'])}
+        layer_type = "labels"
+        label_data.append((df.ml.label.to_numpy(), add_kwargs, layer_type))
+
+    #Load the likelihood data
+
+    return vid_layers
