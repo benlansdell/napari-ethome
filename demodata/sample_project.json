@@ -1,0 +1,47 @@
+{
+    "/Users/blansdel/projects/napari-ethome/demodata/dlc/e3v813a-20210610T120637-121213DLC_dlcrnetms5_pilot_studySep24shuffle1_100000_el_filtered.csv": {
+        "labels": "/Users/blansdel/projects/napari-ethome/demodata/boris/e3v813a-20210610T120637-121213_reencode.csv",
+        "fps": 30,
+        "resolution": [
+            1200,
+            1600
+        ],
+        "video": "/Users/blansdel/projects/napari-ethome/demodata/videos/e3v813a-20210610T120637-121213.avi"
+    },
+    "/Users/blansdel/projects/napari-ethome/demodata/dlc/e3v813a-20210610T121558-122141DLC_dlcrnetms5_pilot_studySep24shuffle1_100000_el_filtered.csv": {
+        "labels": "/Users/blansdel/projects/napari-ethome/demodata/boris/e3v813a-20210610T121558-122141_reencode.csv",
+        "fps": 30,
+        "resolution": [
+            1200,
+            1600
+        ],
+        "video": "/Users/blansdel/projects/napari-ethome/demodata/videos/e3v813a-20210610T121558-122141.avi"
+    },
+    "/Users/blansdel/projects/napari-ethome/demodata/dlc/e3v813a-20210610T122332-122642DLC_dlcrnetms5_pilot_studySep24shuffle1_100000_el_filtered.csv": {
+        "labels": "/Users/blansdel/projects/napari-ethome/demodata/boris/e3v813a-20210610T122332-122642_reencode.csv",
+        "fps": 30,
+        "resolution": [
+            1200,
+            1600
+        ],
+        "video": "/Users/blansdel/projects/napari-ethome/demodata/videos/e3v813a-20210610T122332-122642.avi"
+    },
+    "/Users/blansdel/projects/napari-ethome/demodata/dlc/e3v813a-20210610T122758-123309DLC_dlcrnetms5_pilot_studySep24shuffle1_100000_el_filtered.csv": {
+        "labels": "/Users/blansdel/projects/napari-ethome/demodata/boris/e3v813a-20210610T122758-123309_reencode.csv",
+        "fps": 30,
+        "resolution": [
+            1200,
+            1600
+        ],
+        "video": "/Users/blansdel/projects/napari-ethome/demodata/videos/e3v813a-20210610T122758-123309.avi"
+    },
+    "/Users/blansdel/projects/napari-ethome/demodata/dlc/e3v813a-20210610T123521-124106DLC_dlcrnetms5_pilot_studySep24shuffle1_100000_el_filtered.csv": {
+        "labels": "/Users/blansdel/projects/napari-ethome/demodata/boris/e3v813a-20210610T123521-124106_reencode.csv",
+        "fps": 30,
+        "resolution": [
+            1200,
+            1600
+        ],
+        "video": "/Users/blansdel/projects/napari-ethome/demodata/videos/e3v813a-20210714T095950-100613.avi.re-encoded.1600px.16265k.avi"
+    }
+}
