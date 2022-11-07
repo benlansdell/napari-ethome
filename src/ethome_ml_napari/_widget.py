@@ -6,35 +6,55 @@ see: https://napari.org/stable/plugins/guides.html?#widgets
 
 Replace code below according to your needs.
 """
-from typing import TYPE_CHECKING
-
-from magicgui import magic_factory
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QComboBox, QLabel
-
-from magicgui import magicgui
-import datetime
-from napari_plot._qt.qt_viewer import QtViewer
-import napari_plot
 
 import napari
+import napari_plot
+
+import numpy as np
+
 from typing import List
+from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QComboBox, QLabel
+from napari_plot._qt.qt_viewer import QtViewer
 from napari.layers import Image, Tracks
 
+def set_plot_data(viewer1d, x, y, xmin = None, xmax = None, ymin = None, ymax = None):
+    if xmin is None:
+        xmin = np.min(x)-2.2
+    if xmax is None:
+        xmax = np.max(x)+2.2
+    if ymin is None:
+        ymin = np.min(y)-2.2
+    if ymax is None:
+        ymax = np.max(y)+2.2
+    viewer1d.add_line(np.c_[x, y], name="Line 1", color="lightblue")
+    viewer1d.camera.extent = (xmin, xmax, ymin, ymax)
+    viewer1d.axis.x_label = "frame"
+    viewer1d.axis.y_label = "label"
+    viewer1d.reset_view()
+
+def update_plot(frame_line, data):
+    current_frame = data[0]
+    frame_line.data = [current_frame]
+
+def add_current_frame_line(viewer1d, current_frame):
+    viewer1d.add_inf_line([current_frame], name="current_frame", color="red")
+    return viewer1d.layers[-1]
+
 class PipelineQWidget(QWidget):
-    # your QWidget.__init__ can optionally request the napari viewer instance
-    # in one of two ways:
-    # 1. use a parameter called `napari_viewer`, as done here
-    # 2. use a type annotation of 'napari.viewer.Viewer' for any parameter
     def __init__(self, napari_viewer):
         super().__init__()
         self.viewer = napari_viewer
         self.image_layers = []
         self.tracking_layers = []
+        self.labels_layer = None
         cbox = QComboBox()
         for layer in self.viewer.layers:
             if isinstance(layer, Image):
-                self.image_layers.append(layer)
-                cbox.addItem(layer.name)
+                if layer.name != 'labels':
+                    self.image_layers.append(layer)
+                    cbox.addItem(layer.name)
+                else:
+                    self.labels_layers = layer
             if isinstance(layer, Tracks):
                 self.tracking_layers.append(layer)
         cbox.activated.connect(self._on_click)
@@ -48,6 +68,11 @@ class PipelineQWidget(QWidget):
         widget = QtViewer(self.viewer1d)
         self.viewer.window.add_dock_widget(widget, area="bottom", name="Line Widget")
 
+        frame_line = add_current_frame_line(self.viewer1d, self.viewer.dims.current_step[0])
+        self.viewer.dims.events.current_step.connect(
+            lambda event: update_plot(frame_line, event.value)
+        )
+
     def _on_click(self, idx):
         self.viewer.layers.selection.active = self.image_layers[idx]
         for l in self.image_layers:
@@ -58,11 +83,7 @@ class PipelineQWidget(QWidget):
             l.visible = False
         self.tracking_layers[idx].visible = True
 
-def my_fancy_choices_function(gui) -> List[str]:
-    return ["otsu", "opening"]
-
-@magicgui(layer_name={"choices": my_fancy_choices_function})
-def example_magic_widget(layer_name: str, viewer: napari.Viewer):
-    # the current layer_name choice to get the viewer.
-    selected_layer = viewer.layers[layer_name]
-    # go nuts with your layer.
+        #If we have a labels layer, plot that in the 1d plot
+        if self.labels_layers:
+            label_data = self.labels_layers.data[idx,:]
+            set_plot_data(self.viewer1d, range(len(label_data)), label_data)

@@ -1,7 +1,5 @@
 name: napari-ethome
-display_name: Ethome napari
-on_activate: ethome_ml_napari.load:load_plugin
-on_deactivate: ethome_ml_napari.load:close_plugin
+display_name: Ethome
 contributions:
   commands:
     - id: napari-ethome.get_reader
@@ -16,7 +14,7 @@ contributions:
     - id: napari-ethome.make_sample_data
       python_name: ethome_ml_napari._sample_data:make_sample_data
       title: Load sample data from Ethome napari
-    - id: napari-ethome.make_qwidget
+    - id: napari-ethome.make_pipelinewidget
       python_name: ethome_ml_napari._widget:PipelineQWidget
       title: Behavior analysis pipeline
   readers:
@@ -35,5 +33,5 @@ contributions:
       display_name: Ethome napari
       key: unique_id.1
   widgets:
-    - command: napari-ethome.make_qwidget
+    - command: napari-ethome.make_pipelinewidget
       display_name: Behavior analysis pipeline

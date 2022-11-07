@@ -2,9 +2,6 @@
 
 Warming up:
 
-* On reading the file:
-  Read labels
-  Add widget that lets you select video
 * Features widget: 
   display plot of features
   feature creation buttons
@@ -17,6 +14,7 @@ Then: labeling features
 * Behavior labels -- text layer?
   Points with text labels?
   Predictions and labeled behavior
+  System for managing a lot of different labelings
 * Custom key bindings for annotations
 
 Finally:
@@ -27,11 +25,17 @@ Finally:
 DONE
 
 x On reading the file:
+  Read labels
+  Add widget that lets you select video
+x On reading the file:
   Setup video viewers
   Read tracks 
 x Visualize DLC tracking -- add a points layer over the videos
   https://napari.org/stable/gallery/points-over-time.html
+  Currently I have tracks. Points may be faster... like this example
 x Import of files -- metadata as json file
 x Add demo data
 x Create demo json file
 x Decide on import format
+
+
