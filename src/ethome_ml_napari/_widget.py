@@ -13,21 +13,31 @@ import napari_plot
 import numpy as np
 
 from typing import List
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QComboBox, QLabel
+from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QComboBox, QLabel, \
+                            QVBoxLayout, QListWidget
+from qtpy import QtWidgets
 from napari_plot._qt.qt_viewer import QtViewer
 from napari.layers import Image, Tracks
 
 def set_plot_data(viewer1d, x, y, xmin = None, xmax = None, ymin = None, ymax = None):
     if xmin is None:
-        xmin = np.min(x)-2.2
+        xmin = np.min(x)-.2
     if xmax is None:
-        xmax = np.max(x)+2.2
+        xmax = np.max(x)+.2
     if ymin is None:
-        ymin = np.min(y)-2.2
+        ymin = np.min(y)-.2
     if ymax is None:
-        ymax = np.max(y)+2.2
-    viewer1d.add_line(np.c_[x, y], name="Line 1", color="lightblue")
-    viewer1d.camera.extent = (xmin, xmax, ymin, ymax)
+        ymax = np.max(y)+.2
+
+    try:
+        viewer1d.layers.remove("feature_line")
+    except ValueError:
+        pass
+
+    viewer1d.add_line(np.c_[x, y], name="feature_line", color="lightblue")
+    #viewer1d.camera.extent = (xmin, xmax, ymin, ymax)
+    viewer1d.camera.set_x_range(xmin, xmax)
+    viewer1d.camera.set_y_range(ymin, ymax)
     viewer1d.axis.x_label = "frame"
     viewer1d.axis.y_label = "label"
     viewer1d.reset_view()
@@ -40,6 +50,13 @@ def add_current_frame_line(viewer1d, current_frame):
     viewer1d.add_inf_line([current_frame], name="current_frame", color="red")
     return viewer1d.layers[-1]
 
+class QComboBoxFixedSize(QComboBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSizeAdjustPolicy(2)
+    def minimumSizeHint(self):
+        return 50
+
 class PipelineQWidget(QWidget):
     def __init__(self, napari_viewer):
         super().__init__()
@@ -47,7 +64,9 @@ class PipelineQWidget(QWidget):
         self.image_layers = []
         self.tracking_layers = []
         self.labels_layer = None
-        cbox = QComboBox()
+
+        #Video selection list
+        cbox = QComboBoxFixedSize()
         for layer in self.viewer.layers:
             if isinstance(layer, Image):
                 if layer.name != 'labels':
@@ -59,10 +78,30 @@ class PipelineQWidget(QWidget):
                 self.tracking_layers.append(layer)
         cbox.activated.connect(self._on_click)
 
-        self.setLayout(QHBoxLayout())
+        #Feature list
+        self.feature_list = QListWidget()
+        self.feature_list.addItems(['sparrow', 'robin', 'crow', 'raven',
+                                  'woopecker', 'hummingbird'])
+        self.feature_list.setSelectionMode(
+            QtWidgets.QAbstractItemView.ExtendedSelection
+        )
+        clearBtn = QPushButton('Clear', self)
+        clearBtn.clicked.connect(self.onClearClicked)
+
+        countBtn = QPushButton('Count', self)
+        countBtn.clicked.connect(self.onCountClicked)
+        vbox.addWidget(self.feature_list)
+
+        vbox = QVBoxLayout(self)
+        hbox = QHBoxLayout()
+
         label = QLabel("Select a video")
-        self.layout().addWidget(label)
-        self.layout().addWidget(cbox)
+        hbox.addWidget(label)
+        hbox.addWidget(cbox)
+        vbox.addLayout(hbox)
+
+        vbox.addStretch()
+        self.setLayout(vbox)
 
         self.viewer1d = napari_plot.ViewerModel1D()
         widget = QtViewer(self.viewer1d)
