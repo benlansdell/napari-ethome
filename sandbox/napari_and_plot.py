@@ -35,10 +35,25 @@ class QComboBoxFixedSize(QComboBox):
         return QSize(200, 0)
 
 class ExampleQWidget(QWidget):
-    # your QWidget.__init__ can optionally request the napari viewer instance
-    # in one of two ways:
-    # 1. use a parameter called `napari_viewer`, as done here
-    # 2. use a type annotation of 'napari.viewer.Viewer' for any parameter
+
+    def _setup_widgets(self):
+        self.labeling_list = QListWidget()
+        self.labeling_list.addItems(['sparrow', 'robin', 'crow', 'raven',
+                                  'woopecker', 'hummingbird'])
+        self.labeling_list.setFixedHeight(200)
+
+        self.feature_list = QListWidget()
+        self.feature_list.addItems(['sparrow', 'robin', 'crow', 'raven',
+                                  'woopecker', 'hummingbird'])
+        self.feature_list.setFixedHeight(200)
+        self.feature_list.setSelectionMode(
+            QtWidgets.QAbstractItemView.MultiSelection
+        )
+
+        self.prediction_list = QListWidget()
+        self.prediction_list.addItems(['sparrow'])
+        self.prediction_list.setFixedHeight(200)
+
     def __init__(self, napari_viewer):
         super().__init__()
         self.viewer = napari_viewer
@@ -52,38 +67,54 @@ class ExampleQWidget(QWidget):
         cbox2.activated.connect(self._on_click)
 
 
-        self.feature_list = QListWidget()
-        self.feature_list.addItems(['sparrow', 'robin', 'crow', 'raven',
-                                  'woopecker', 'hummingbird'])
-        #self.feature_list.setFixedHeight(200)
-        self.feature_list.setSelectionMode(
-            QtWidgets.QAbstractItemView.MultiSelection
-        )
-
         trainBtn = QPushButton('Train', self)
         trainBtn.clicked.connect(self._on_click)
 
+        loadModelBtn = QPushButton('Load and run model', self)
+        loadModelBtn.clicked.connect(self._on_click)
+
+        recBtn = QPushButton('Record labels', self)
+        recBtn.clicked.connect(self._on_click)
+
+        saveLabelsBtn = QPushButton('Stop labeling', self)
+        saveLabelsBtn.clicked.connect(self._on_click)
+
+        saveBtn = QPushButton('Save project', self)
+        saveBtn.clicked.connect(self._on_click)
+
+        refineBtn = QPushButton('Refine labels', self)
+        refineBtn.clicked.connect(self._on_click)
+
+        saveModelBtn = QPushButton('Save model', self)
+        saveModelBtn.clicked.connect(self._on_click)
+
         vbox = QVBoxLayout(self)
+
+        hbox1 = QHBoxLayout()
+        hbox1.addWidget(recBtn)
+        hbox1.addWidget(saveLabelsBtn)
+        vbox.addLayout(hbox1)
+
+        vbox.addWidget(QLabel("Label sets (select to use in training)"))
+        vbox.addWidget(self.labeling_list)
+
         vbox.addWidget(QHSeperationLine())
-        vbox.addWidget(QLabel("Features to train ML model"))
+        vbox.addWidget(QLabel("Features to train ML model\n(wait first time selected)"))
         vbox.addWidget(self.feature_list)
 
-        #Make this dropdown box instead
-        self.model_list = QComboBoxFixedSize()
-        self.model_list.addItems(['sparrow', 'robin', 'crow', 'raven'])
-        vbox.addWidget(QLabel("ML model to train"))
-        vbox.addWidget(self.model_list)
-
-        #Make this dropdown box instead
-        self.labels_list = QComboBoxFixedSize()
-        self.labels_list.addItems(['sparrow', 'robin', 'crow'])
-        vbox.addWidget(QLabel("Labels to use for training"))
-        vbox.addWidget(self.labels_list)
-
         vbox.addWidget(trainBtn)
+        vbox.addWidget(loadModelBtn)
+
+        vbox.addWidget(QHSeperationLine())
+        vbox.addWidget(QLabel("Models"))
+        vbox.addWidget(self.prediction_list)
+
+        vbox.addWidget(refineBtn)
+        vbox.addWidget(saveModelBtn)
+
+        vbox.addStretch()
 
         hbox = QHBoxLayout()
-
         label = QLabel("View video")
         hbox.addWidget(label)
         hbox.addWidget(cbox)
@@ -96,7 +127,8 @@ class ExampleQWidget(QWidget):
         hbox2.addWidget(QLabel("Plot trace"))
         hbox2.addWidget(cbox2)
         vbox.addLayout(hbox2)
-        vbox.addStretch()
+
+        vbox.addWidget(saveBtn)
 
         self.setLayout(vbox)
 
