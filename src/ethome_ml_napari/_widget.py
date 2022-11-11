@@ -20,6 +20,10 @@ from napari_plot._qt.qt_viewer import QtViewer
 from napari.layers import Image, Tracks
 from qtpy.QtCore import QSize
 
+#This is hacky... but it works better than other solutions
+#Goes against private convention
+from ._reader import ethomedf
+
 class QHSeperationLine(QtWidgets.QFrame):
   '''
   a horizontal seperation line\n
@@ -70,52 +74,32 @@ class QComboBoxFixedSize(QComboBox):
     def minimumSizeHint(self):
         return QSize(200, 0)
 
+class StatsQWidget(QWidget):
+    def __init__(self, viewer, df):
+        super().__init__()
+        self.viewer = viewer
+        self.df = df
+        self.text = QLabel(f"Animals: {self.df.pose.animals}")
+        self.text.setFixedWidth(200)
+        vbox = QVBoxLayout(self)
+        vbox.addWidget(QLabel("Stats:"))
+        vbox.addWidget(self.text)
+        self.setLayout(vbox)
+
 class PipelineQWidget(QWidget):
-    def __init__(self, napari_viewer):
-        super().__init__()
-        self.viewer = napari_viewer
-        self.image_layers = []
-        self.tracking_layers = []
-        self.labels_layer = None
-
-        #Video selection list
-        cbox = QComboBoxFixedSize()
-        for layer in self.viewer.layers:
-            if isinstance(layer, Image):
-                if layer.name != 'labels':
-                    self.image_layers.append(layer)
-                    cbox.addItem(layer.name)
-                else:
-                    self.labels_layers = layer
-            if isinstance(layer, Tracks):
-                self.tracking_layers.append(layer)
-        cbox.activated.connect(self._on_click)
-
-    def _setup_widgets(self):
-        self.labeling_list = QListWidget()
-        self.labeling_list.addItems(['sparrow', 'robin', 'crow', 'raven',
-                                  'woopecker', 'hummingbird'])
-        self.labeling_list.setFixedHeight(200)
-
-        self.feature_list = QListWidget()
-        self.feature_list.addItems(['sparrow', 'robin', 'crow', 'raven',
-                                  'woopecker', 'hummingbird'])
-        self.feature_list.setFixedHeight(200)
-        self.feature_list.setSelectionMode(
-            QtWidgets.QAbstractItemView.MultiSelection
-        )
-
-        self.prediction_list = QListWidget()
-        self.prediction_list.addItems(['sparrow'])
-        self.prediction_list.setFixedHeight(200)
 
     def __init__(self, napari_viewer):
         super().__init__()
         self.viewer = napari_viewer
+        
+        global ethomedf 
+        self.df = ethomedf.df
+
         self.image_layers = []
         self.tracking_layers = []
         self.labels_layer = None
-
+        self.viewer.window.qt_viewer.dockLayerList.setVisible(False)
+        self.viewer.window.qt_viewer.dockLayerControls.setVisible(False)
         self._setup_widgets()
 
         #Video selection list
@@ -204,6 +188,27 @@ class PipelineQWidget(QWidget):
         self.viewer1d = napari_plot.ViewerModel1D()
         widget = QtViewer(self.viewer1d)
         self.viewer.window.add_dock_widget(widget, area="bottom", name="Line Widget")
+
+        self.stats = StatsQWidget(self.viewer, self.df)
+        self.viewer.window.add_dock_widget(self.stats, area="left", name="Behavior output")
+
+    def _setup_widgets(self):
+        self.labeling_list = QListWidget()
+        self.labeling_list.addItems(['sparrow', 'robin', 'crow', 'raven',
+                                  'woopecker', 'hummingbird'])
+        self.labeling_list.setFixedHeight(150)
+
+        self.feature_list = QListWidget()
+        self.feature_list.addItems(['sparrow', 'robin', 'crow', 'raven',
+                                  'woopecker', 'hummingbird'])
+        self.feature_list.setFixedHeight(110)
+        self.feature_list.setSelectionMode(
+            QtWidgets.QAbstractItemView.MultiSelection
+        )
+
+        self.prediction_list = QListWidget()
+        self.prediction_list.addItems(['sparrow'])
+        self.prediction_list.setFixedHeight(150)
 
     # def _on_click(self):
     #     self.viewer1d = napari_plot.ViewerModel1D()
