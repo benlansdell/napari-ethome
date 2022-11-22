@@ -10,16 +10,7 @@ from ethome import create_dataset
 from napari_video.napari_video import VideoReaderNP
 from itertools import product
 
-class EthomeDF:
-    def __init__(self):
-        self.df = None
-
-    def load(self, path):
-        with open(path) as f:
-            metadata = json.load(f)
-        self.df = create_dataset(metadata)
-
-ethomedf = EthomeDF()
+from .backend import ethomedf
 
 def napari_get_reader(path):
     """A basic implementation of a Reader contribution.
@@ -72,6 +63,14 @@ def reader_function(path):
 
     vid_layers = []
 
+    #Load video data
+    add_kwargs = {'visible': False}
+    layer_type = "image"
+    def _make_kwargs(p):
+        return {**add_kwargs, 'name': 'video_' + os.path.basename(p)}
+    vid_paths = [df.metadata.details[vid]['video'] for vid in df.metadata.videos]
+    vid_layers += [(VideoReaderNP(p), _make_kwargs(p), layer_type) for p in vid_paths]
+
     #Load in tracking data 
     for idx, vid in enumerate(df.metadata.videos):
         add_kwargs = {'visible': False, 'name': 'tracks_' + os.path.basename(vid)}
@@ -86,14 +85,6 @@ def reader_function(path):
             data = data.loc[:,['track_idx', 'frame', 'y', 'x']]
             this_vids_data = pd.concat([this_vids_data, data])
         vid_layers.append((this_vids_data.to_numpy(), add_kwargs, layer_type))           
-
-    #Load video data
-    add_kwargs = {'visible': False}
-    layer_type = "image"
-    def _make_kwargs(p):
-        return {**add_kwargs, 'name': 'video_' + os.path.basename(p)}
-    vid_paths = [df.metadata.details[vid]['video'] for vid in df.metadata.videos]
-    vid_layers += [(VideoReaderNP(p), _make_kwargs(p), layer_type) for p in vid_paths]
 
     #If there are labels, add that data too
     layer_data = []
